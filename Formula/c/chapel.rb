@@ -3,27 +3,27 @@ class Chapel < Formula
 
   desc "Programming language for productive parallel computing at scale"
   homepage "https://chapel-lang.org/"
-  url "https://github.com/chapel-lang/chapel/releases/download/2.8.0/chapel-2.8.0.tar.gz"
-  sha256 "80e8c3018e33e49674c7a2542e062547ea41d64d6595edb3b799e90c88f963f8"
+  url "https://github.com/chapel-lang/chapel/releases/download/2.9.0/chapel-2.9.0.tar.gz"
+  sha256 "d91ececfc070f0e94c979dd08cdd3f6da84db4ee48fe06f3187ad259ea9553e7"
   license "Apache-2.0"
   head "https://github.com/chapel-lang/chapel.git", branch: "main"
 
   no_autobump! because: :bumped_by_upstream
 
   bottle do
-    sha256 arm64_tahoe:   "82aae74accac4133783e73ba3b493c3c3c3ab52feab645cb50276469a98b348a"
-    sha256 arm64_sequoia: "080918e65887cecfe88ece72f28a8b455618fd7f52b1d44357ec63bba78ebda2"
-    sha256 arm64_sonoma:  "7f13698fd8a0aaa0a95d78daa1988764d444da247f74a1a317bcaf71cbc1fb15"
-    sha256 sonoma:        "c0905006d548fa3db07a946c92ee725d8742524416080716e39fda5ef96f4afb"
-    sha256 arm64_linux:   "2ee31f93c06a0550c453a913ffbc2f67e9a9de83236e73d55b678c9185aafcb2"
-    sha256 x86_64_linux:  "e1d4834cd0d3fa88b3c002ede65d40e1110e955b4bbe1007137824594aa04e49"
+    sha256 arm64_tahoe:   "a73efe05b4551688355d1ddc3707424ae86573fc91352aec8c0eae6e0c4f6ce4"
+    sha256 arm64_sequoia: "9dcd53c9c5b564dfe18e8adab1fcaa9bace0847b05e9a7e0895c9bc2118d0a72"
+    sha256 arm64_sonoma:  "e1deda3af30cfb9d006072dd0b87bb57f76337d5819abad0076a0281495b5589"
+    sha256 sonoma:        "8cdec547c132c71423804efa6c22c49dd802351b5e4984b8caa21ff09130e785"
+    sha256 arm64_linux:   "2a8974a412dad807f368dc6ec6d0e81be099202c12536a741cd414752b864efb"
+    sha256 x86_64_linux:  "69749327935b602942509d11a242e12641fb5d5c3692592cf7794d18519802ac"
   end
 
   depends_on "cmake"
   depends_on "gmp"
   depends_on "hwloc"
   depends_on "jemalloc"
-  depends_on "llvm@21"
+  depends_on "llvm"
   depends_on "pkgconf"
   depends_on "python@3.14"
 
@@ -117,6 +117,7 @@ class Chapel < Formula
 
       with_env(CHPL_PIP_FROM_SOURCE: "1") do
         system "make", "chpldoc"
+        system "make", "c2chapel"
         system "make", "chplcheck"
         system "make", "chpl-language-server"
       end
@@ -159,7 +160,7 @@ class Chapel < Formula
     (lib/"cmake/chpl").install libexec.glob("lib/cmake/chpl/*")
 
     chplrun_udp = libexec/"bin"/platform/"chplrun-udp"
-    chplrun_udp.write <<~EOS
+    chplrun_udp.write <<~BASH
       #!/bin/bash
       GASNET_SPAWNFN=L \
       GASNET_ROUTE_OUTPUT=0 \
@@ -168,7 +169,7 @@ class Chapel < Formula
       GASNET_WORKERIP=127.0.0.0 \
       CHPL_RT_OVERSUBSCRIBED=yes \
       exec "$@"
-    EOS
+    BASH
     chplrun_udp.chmod 0755
     bin.install_symlink chplrun_udp => "chplrun-udp"
   end
@@ -227,6 +228,8 @@ class Chapel < Formula
            "--print-commands", libexec/"examples/hello.chpl"
     system bin/"chpldoc", "--version"
     system bin/"mason", "--version"
+
+    system bin/"c2chapel", "--version"
 
     # Test chplcheck, if it works CLS probably does too.
     # chpl-language-server will hang indefinitely waiting for a LSP client
